@@ -1,53 +1,18 @@
-# Portfólio autoral — Cyro Borges | Versão 1.14 — candidata à publicação
+# Portfólio autoral — Cyro Borges
 
-Portfólio autoral em HTML, CSS e JavaScript, com navegação e conteúdo aprovados pelo autor para preparação da publicação.
+Versão 1.15. Site estático responsivo (HTML, CSS e JavaScript), pronto para hospedagem pelo GitHub Pages.
 
-## Abrir no computador
+## Conteúdo
+- Início — apresentação autoral e mosaico fotográfico.
+- Projeto Tirésias — estudo de caso com contexto, origem, funcionalidades, desenvolvimento e seis capturas reais da interface, usando dados de demonstração (dados de dispositivo ocultados nas cópias exibidas).
+- Olhares — galeria das 41 fotografias autorais selecionadas.
+- Cadernos — quatro textos autorais aprovados, numerados de 001 a 004.
+- Sobre — apresentação do autor.
 
-1. Extraia TODO o conteúdo do arquivo ZIP para uma pasta.
-2. Abra `index.html` no navegador.
-3. Para trabalhar com VS Code, abra a pasta `portfolio-cyro-v1.14` no editor. A extensão Live Server é opcional.
-4. Os links funcionam por caminhos relativos, inclusive quando o site estiver hospedado em uma subpasta do GitHub Pages.
+## Publicação
+O arquivo `index.html` e as pastas `assets`, `tiresias`, `olhares`, `cadernos` e `sobre` devem ficar diretamente na raiz do repositório GitHub Pages. Os links são relativos e funcionam em repositórios de projeto, como `/portifolio-cyro/`.
 
-## Arquivos
+## Atualizações
+Edite os arquivos na pasta local clonada pelo GitHub Desktop; faça Commit e Push origin para publicar as alterações. Não envie apenas o ZIP para a raiz do repositório.
 
-- `index.html` — abertura fotográfica e mosaico.
-- `tiresias/index.html` — estudo de caso editorial, com protótipo conceitual e dados fictícios.
-- `olhares/index.html` — galeria fotográfica e visualização ampliada.
-- `cadernos/index.html`, `cadernos/001/index.html` e `cadernos/002/index.html` — índice e dois ensaios aprovados.
-- `sobre/index.html` — apresentação e repertório.
-- `assets/css/styles.css` — identidade visual e responsividade.
-- `assets/js/main.js` — menu, âncoras e galeria.
-- `assets/images/` — cópias dos arquivos fotográficos originais, sem retoques nem alterações de cor.
-
-## Restrições respeitadas
-
-- Não há nomes de clientes, empresas ou colegas.
-- As 41 fotografias do acervo, inclusive realizadas no trabalho, estão na galeria por solicitação do autor. Capturas reais do aplicativo permanecem excluídas.
-- A interface ilustrativa do estudo de caso é um protótipo editorial fictício.
-- O Caderno 001 conserva seu texto aprovado, incluindo '(Projeto Tirésias)'.
-- Os Cadernos 001 e 002 foram aprovados pelo autor e estão incluídos nesta versão do site.
-- As 41 fotografias autorais disponíveis estão incluídas na galeria, sem retoques, inclusive as imagens feitas no ambiente de trabalho.
-
-## Verificações anteriores à publicação
-
-- Testes de navegação em computador e Android confirmados pelo autor.
-- Os 41 arquivos fotográficos foram aprovados pelo autor, inclusive os de ambiente profissional. A aprovação do autor não substitui direitos de terceiros nem eventuais deveres de confidencialidade.
-- O enquadramento da foto da borboleta no desktop está em 40%, conforme ajuste aprovado pelo autor.
-- Confirmar funcionamento no endereço hospedado após publicar.
-
-## Observação sobre recursos externos
-
-As fontes Manrope e Inter são solicitadas ao Google Fonts quando houver internet. Sem conexão, o site utiliza as fontes disponíveis no dispositivo.
-
-## Atenção antes de publicar
-
-O autor aprovou o uso das 41 fotografias. Recomenda-se verificar direitos de terceiros, eventuais obrigações de confidencialidade e metadados EXIF antes da divulgação pública.
-
-
-## Versão 1.14 — revisão para publicação
-- Borboleta no mosaico em telas largas: enquadramento vertical 40%, aprovado no VS Code.
-- Fotografia arquitetônica no estudo Tirésias: enquadramento vertical 70% (antes 42%).
-- Abertura noturna: blur de 1,1px apenas no plano de fundo em telas largas; texto permanece nítido.
-- Layout móvel e conteúdo preservados.
-- Importante: extraia a pasta inteira nova, com nome distinto, para não reutilizar o CSS antigo do navegador.
+Fotografias originais não foram retocadas; as seis capturas do aplicativo são versões destinadas à apresentação pública com dados de demonstração. O conceito de hub amplo de rastreabilidade é uma possibilidade futura e não uma funcionalidade implementada.
