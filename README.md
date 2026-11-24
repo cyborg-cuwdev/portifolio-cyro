@@ -1,6 +1,6 @@
 # Portfólio autoral — Cyro Borges
 
-Versão 1.15. Site estático responsivo (HTML, CSS e JavaScript), pronto para hospedagem pelo GitHub Pages.
+Versão 1.16. Site estático responsivo (HTML, CSS e JavaScript), pronto para hospedagem pelo GitHub Pages.
 
 ## Conteúdo
 - Início — apresentação autoral e mosaico fotográfico.
