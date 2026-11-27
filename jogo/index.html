@@ -23,8 +23,7 @@
         <div class="game-hud"><span>Pontos <strong id="score">0</strong></span><span>Vagão <strong id="wagon-number">—</strong></span><span>Turno <strong id="shift">Dia</strong></span></div>
         <p id="status" role="status">Pronto para inspecionar</p>
         <canvas id="track" width="560" height="660" aria-label="Via férrea vista de cima, com um vagão aberto na área de inspeção"></canvas>
-        <p id="mode-choice" hidden><label><input id="game-mode" type="checkbox"> Partida com ranking online</label></p>
-        <button id="start" class="game-button">Iniciar partida</button>
+        <button id="start" class="game-button">Jogar</button>
         <div class="game-controls">
           <button id="approve" class="game-button approve" disabled>APROVAR <kbd>A</kbd></button>
           <button id="reject" class="game-button reject" disabled>RECUSAR <kbd>R</kbd></button>
@@ -32,9 +31,10 @@
       </section>
       <aside class="game-ranking">
         <h2>Highscore</h2>
-        <p id="empty-ranking">Ainda não há pontuações.</p>
+        <p id="empty-ranking" hidden>Ainda não há pontuações.</p>
         <ol id="ranking"></ol>
-        <p class="muted" id="ranking-source">Placar salvo neste navegador.</p>
+        <p class="muted" id="ranking-source" role="status">Consultando o placar global…</p>
+        <button id="retry-ranking" class="game-button secondary" type="button" hidden>Recarregar placar</button>
       </aside>
     </div>
     <dialog id="result" aria-labelledby="result-title">

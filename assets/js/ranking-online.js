@@ -10,6 +10,7 @@ const rankingOnline = (() => {
   let startsAt = 0;
 
   async function request(op, payload = {}) {
+    if (!available) throw new Error('configuracao');
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', apikey: publishableKey },
@@ -26,6 +27,10 @@ const rankingOnline = (() => {
   async function start() {
     const sent = performance.now();
     const data = await request('iniciar');
+    if (!/^[a-f0-9]{64}$/.test(data.token ?? '') ||
+        !Number.isFinite(data.agora) || !Number.isFinite(data.inicio)) {
+      throw new Error('sessao_invalida');
+    }
     clockOffset = data.agora - (sent + performance.now()) / 2;
     startsAt = data.inicio;
     token = data.token;

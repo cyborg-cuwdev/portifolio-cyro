@@ -1,13 +1,13 @@
 # Portfólio autoral — Cyro Borges
 
-Versão 1.26. Site estático responsivo (HTML, CSS e JavaScript), pronto para hospedagem pelo GitHub Pages.
+Versão 1.27. Site estático responsivo (HTML, CSS e JavaScript), pronto para hospedagem pelo GitHub Pages.
 
 ## Conteúdo
 - Início — apresentação autoral e mosaico fotográfico.
 - Projeto Tirésias — estudo de caso com contexto, origem, funcionalidades, desenvolvimento e seis capturas reais da interface, usando dados de demonstração (dados de dispositivo ocultados nas cópias exibidas).
 - Olhares — galeria das 41 fotografias autorais selecionadas.
 - Cadernos — quatro textos autorais aprovados, numerados de 001 a 004.
-- Jogo — protótipo de inspeção de vagões com placar local por navegador.
+- Jogo — inspeção de vagões com partidas online e placar global no Supabase. Para testar, sirva o site pela origem HTTP autorizada na função tiresias-jogo.
 - Sobre — apresentação do autor.
 
 ## Publicação

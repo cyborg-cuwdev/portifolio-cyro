@@ -19,7 +19,6 @@ const palette = [
   ['#478879', '#89c6a3', '#335b5c'],
   ['#8c609e', '#c998ce', '#573e6d']
 ];
-const rankingKey = 'cyro-inspecao-highscore-v1';
 const centerY = 161;
 const wagonHeight = 338;
 const wagonSpacing = 356;
@@ -35,7 +34,6 @@ edgeFade.addColorStop(.23, '#000');
 edgeFade.addColorStop(.77, '#000');
 edgeFade.addColorStop(1, 'transparent');
 const zoneStart = centerY - wagonHeight / 2;
-const zoneEnd = centerY + wagonHeight / 2;
 const openingDistance = 104;
 const nightBeam = ctx.createRadialGradient(280, 330, 105, 280, 330, 355);
 nightBeam.addColorStop(0, '#161c3910');
@@ -45,34 +43,12 @@ let score = 0;
 let phase = 'idle';
 let wagons = [];
 let active = null;
-let nextNumber = 1;
-let previousFrame;
 const entryY = -wagonHeight - 12;
 let nightAmount = 0;
-let missed = null;
 let ranking = [];
-const mode = get('game-mode');
 let online = null;
-let localRanking;
-
-try {
-  const saved = JSON.parse(localStorage.getItem(rankingKey));
-  if (Array.isArray(saved)) {
-    ranking = saved.filter(entry => typeof entry?.name === 'string' &&
-      Number.isSafeInteger(entry.score) && entry.score >= 0);
-  }
-} catch {
-  // O placar continua disponível durante a sessão.
-}
-
-localRanking = ranking;
-mode.disabled = !rankingOnline.available;
-if (rankingOnline.available) get('mode-choice').hidden = false;
 
 function renderRanking() {
-  ranking.sort((a, b) => b.score - a.score);
-  ranking.length = Math.min(10, ranking.length);
-  get('empty-ranking').hidden = ranking.length > 0;
   get('ranking').replaceChildren(...ranking.map(entry => {
     const item = document.createElement('li');
     item.textContent = entry.name + ' · ' + entry.score;
@@ -291,32 +267,6 @@ function draw() {
   }
 }
 
-function makeResidue() {
-  const pattern = residuePatterns[Math.floor(Math.random() * residuePatterns.length)];
-  const firstHatch = Math.floor(Math.random() * hatchOffsets.length);
-  const spread = Math.random() < .5;
-  const count = 1 + Math.floor(Math.random() * 4);
-  const centerX = 232 + Math.floor(Math.random() * 20) * 4;
-  return Array.from({ length: count }, (_, i) => {
-    const hatch = hatchOffsets[(firstHatch + (spread ? i : 0)) % hatchOffsets.length];
-    return {
-      pattern,
-      x: spread ? 224 + Math.floor(Math.random() * 26) * 4 : centerX + i * 8 - 12,
-      y: hatch + 28 + Math.floor(Math.random() * 9) * 4,
-      mirrored: Math.random() < .5
-    };
-  });
-}
-
-function makeWagon(y) {
-  const dirty = Math.random() < .5;
-  return {
-    number: nextNumber++, y, judged: false,
-    color: palette[Math.floor(Math.random() * palette.length)],
-    residue: dirty ? makeResidue() : []
-  };
-}
-
 function intervalFor(number) {
   if (number <= 10) return 2000;
   if (number <= 25) return 1800;
@@ -343,40 +293,6 @@ function setActive(wagon) {
   approve.disabled = reject.disabled = !active;
 }
 
-function frame(now) {
-  if (phase !== 'running') return;
-  const elapsed = previousFrame === undefined || document.hidden ? 0 : Math.min(100, now - previousFrame);
-  previousFrame = now;
-
-  const lead = wagons.find(wagon => wagon.y < zoneEnd) ?? wagons.at(-1);
-  const progress = lead.number + (lead.y - zoneStart) / wagonSpacing;
-  const distance = elapsed * wagonSpacing / intervalFor(Math.max(1, Math.floor(progress)));
-  for (const wagon of wagons) wagon.y += distance;
-  const tail = wagons.at(-1);
-  if (!missed && tail.y >= entryY + wagonSpacing) wagons.push(makeWagon(tail.y - wagonSpacing));
-
-  if (!missed) {
-    missed = wagons.find(wagon => !wagon.judged && wagon.y >= zoneEnd) ?? null;
-    if (missed) {
-      setActive(null);
-      setStatus('Vagão sem resposta');
-    } else {
-      const candidate = wagons.find(wagon => !wagon.judged && wagon.y >= zoneStart);
-      if (candidate && active !== candidate) {
-        setActive(candidate);
-        get('wagon-number').textContent = candidate.number;
-        setStatus('Inspecione o interior');
-      }
-    }
-  }
-
-  wagons = wagons.filter(wagon => wagon.y < canvas.height + 12);
-  updateTurn(Math.max(1, progress));
-  draw();
-  if (missed && missed.y >= canvas.height + 12) finish('O vagão passou sem resposta.');
-  else requestAnimationFrame(frame);
-}
-
 function finish(reason) {
   phase = 'over';
   setActive(null);
@@ -391,23 +307,19 @@ function finish(reason) {
 
 async function refreshRanking() {
   const notice = get('ranking-source');
-  if (!mode.checked) {
-    ranking = localRanking;
-    notice.textContent = 'Placar salvo neste navegador.';
-    renderRanking();
-    return;
-  }
-  ranking = [];
-  renderRanking();
-  notice.textContent = 'Consultando o placar online…';
+  const retry = get('retry-ranking');
+  retry.hidden = true;
+  get('empty-ranking').hidden = true;
+  notice.textContent = 'Consultando o placar global…';
   try {
     const { ranking: entries } = await rankingOnline.load();
-    if (!mode.checked) return;
     ranking = entries.map(entry => ({ name: entry.apelido, score: entry.pontuacao }));
-    notice.textContent = 'Placar compartilhado.';
     renderRanking();
+    get('empty-ranking').hidden = ranking.length > 0;
+    notice.textContent = 'Placar global.';
   } catch {
-    if (mode.checked) notice.textContent = 'Placar online indisponível. Tente novamente.';
+    notice.textContent = 'O placar global está indisponível. Verifique a conexão.';
+    retry.hidden = false;
   }
 }
 
@@ -416,9 +328,10 @@ function onlineFailure(message) {
   online = null;
   setActive(null);
   setStatus(message);
-  mode.disabled = false;
   start.hidden = false;
-  start.textContent = 'Jogar novamente';
+  start.disabled = false;
+  start.textContent = 'Tentar novamente';
+  start.focus();
 }
 
 function onlineFrame(session) {
@@ -450,7 +363,7 @@ function onlineFrame(session) {
         setActive(null);
         setStatus('Vagão sem resposta');
       } else {
-        onlineFailure('Conexão interrompida. Inicie outra partida.');
+        onlineFailure('Partida encerrada. A conexão caiu antes de carregar o próximo vagão.');
       }
     }).finally(() => { session.requesting = false; });
   }
@@ -510,68 +423,53 @@ async function classifyOnline(approved) {
       session.missed = true;
       setStatus('Vagão sem resposta');
     } else {
-      onlineFailure('Não foi possível confirmar a decisão. Inicie outra partida.');
+      onlineFailure('Partida encerrada. O servidor não confirmou a última decisão.');
     }
   } finally {
     session.pending = false;
   }
 }
 
-mode.addEventListener('change', refreshRanking);
-
-function classify(approved) {
-  if (phase !== 'running' || !active || document.hidden) return;
-  if (online) { void classifyOnline(approved); return; }
-  const clean = active.residue.length === 0;
-  if (approved !== clean) {
-    finish(clean ? 'O vagão estava limpo.' : 'O vagão continha resíduos.');
-    return;
-  }
-  active.judged = true;
-  setActive(null);
-  score += 1;
-  get('score').textContent = score;
-  setStatus('Acerto! +1 ponto');
-}
-
+get('retry-ranking').addEventListener('click', refreshRanking);
 start.addEventListener('click', async () => {
-  if (phase === 'running') return;
-  phase = 'running';
-  start.hidden = true;
-  mode.disabled = true;
-  online = null;
-  score = 0;
-  nextNumber = 1;
-  previousFrame = undefined;
-  missed = null;
-  wagons = [makeWagon(entryY)];
-  get('score').textContent = score;
-  get('wagon-number').textContent = '—';
-  setActive(null);
-  setStatus('Vagão chegando…');
-  updateTurn(1);
-  draw();
-  if (!mode.checked) {
-    requestAnimationFrame(frame);
-    return;
-  }
-  wagons = [];
-  draw();
-  setStatus('Conectando ao placar online…');
+  if (phase !== 'idle') return;
+  phase = 'connecting';
+  start.disabled = true;
+  setStatus('Conectando ao jogo online…');
   try {
     await rankingOnline.start();
-    online = {
+    score = 0;
+    get('score').textContent = score;
+    get('wagon-number').textContent = '—';
+    wagons = [];
+    setActive(null);
+    updateTurn(1);
+    draw();
+    const session = {
       number: 1, opens: rankingOnline.firstOpening(), closes: 0,
       accepted: 0, retryAt: 0, cars: new Map(),
       requesting: false, pending: false, missed: false
     };
+    online = session;
+    phase = 'running';
+    start.hidden = true;
     setStatus('Vagão chegando…');
-    requestAnimationFrame(() => onlineFrame(online));
+    requestAnimationFrame(() => onlineFrame(session));
   } catch {
-    onlineFailure('Não foi possível abrir uma partida online.');
+    const message = rankingOnline.available
+      ? 'Não foi possível conectar. Verifique sua internet e tente novamente.'
+      : 'Abra o jogo pelo endereço do site para iniciar uma partida online.';
+    onlineFailure(message);
+  } finally {
+    start.disabled = false;
   }
 });
-document.addEventListener('visibilitychange', () => { previousFrame = undefined; });
+
+function classify(approved) {
+  if (phase !== 'running' || !active || !online || document.hidden) return;
+  void classifyOnline(approved);
+}
+
 approve.addEventListener('click', () => classify(true));
 reject.addEventListener('click', () => classify(false));
 document.addEventListener('keydown', event => {
@@ -582,52 +480,38 @@ document.addEventListener('keydown', event => {
 player.addEventListener('input', () => player.setCustomValidity(''));
 get('record').addEventListener('submit', async event => {
   event.preventDefault();
+  if (phase !== 'over' || !online) return;
   const name = player.value.trim();
-  if (!name) {
-    player.setCustomValidity('Digite seu nome.');
+  if ([...name].length < 2) {
+    player.setCustomValidity('Use pelo menos dois caracteres.');
     player.reportValidity();
     return;
   }
-  if (online) {
-    if ([...name].length < 2) {
-      player.setCustomValidity('Use pelo menos dois caracteres.');
-      player.reportValidity();
-      return;
-    }
-    const submit = get('save-score');
-    if (submit.disabled) return;
-    submit.disabled = true;
-    get('skip').disabled = true;
-    get('publish-status').textContent = 'Publicando…';
-    try {
-      await rankingOnline.publish(name);
-      result.close();
-      void refreshRanking();
-    } catch {
-      get('publish-status').textContent = 'O placar não confirmou o envio. Tente novamente.';
-    } finally {
-      submit.disabled = false;
-      get('skip').disabled = false;
-    }
-    return;
-  }
-  ranking.push({ name, score });
-  renderRanking();
+  const submit = get('save-score');
+  if (submit.disabled) return;
+  submit.disabled = true;
+  get('skip').disabled = true;
+  get('publish-status').textContent = 'Publicando…';
   try {
-    localStorage.setItem(rankingKey, JSON.stringify(ranking));
+    await rankingOnline.publish(name);
+    result.close();
+    void refreshRanking();
   } catch {
-    document.querySelector('.game-ranking .muted').textContent = 'Placar disponível durante esta sessão.';
+    get('publish-status').textContent = 'O placar não confirmou o envio. Tente novamente.';
+  } finally {
+    submit.disabled = false;
+    get('skip').disabled = false;
   }
-  result.close();
 });
 get('skip').addEventListener('click', () => result.close());
 result.addEventListener('cancel', event => { if (get('save-score').disabled) event.preventDefault(); });
 result.addEventListener('close', () => {
-  mode.disabled = !rankingOnline.available;
+  phase = 'idle';
+  online = null;
   start.textContent = 'Jogar novamente';
   start.hidden = false;
   start.focus();
 });
 
 draw();
-renderRanking();
+void refreshRanking();
