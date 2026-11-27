@@ -7,6 +7,8 @@
   <link rel="icon" href="../assets/favicon.svg">
   <link rel="stylesheet" href="../assets/css/styles.css">
   <link rel="stylesheet" href="../assets/css/jogo.css">
+  <script src="../assets/js/ranking-config.js" defer></script>
+  <script src="../assets/js/ranking-online.js" defer></script>
   <script src="../assets/js/jogo.js" defer></script>
 </head>
 <body class="game-background">
@@ -21,6 +23,7 @@
         <div class="game-hud"><span>Pontos <strong id="score">0</strong></span><span>Vagão <strong id="wagon-number">—</strong></span><span>Turno <strong id="shift">Dia</strong></span></div>
         <p id="status" role="status">Pronto para inspecionar</p>
         <canvas id="track" width="560" height="660" aria-label="Via férrea vista de cima, com um vagão aberto na área de inspeção"></canvas>
+        <p id="mode-choice" hidden><label><input id="game-mode" type="checkbox"> Partida com ranking online</label></p>
         <button id="start" class="game-button">Iniciar partida</button>
         <div class="game-controls">
           <button id="approve" class="game-button approve" disabled>APROVAR <kbd>A</kbd></button>
@@ -31,7 +34,7 @@
         <h2>Highscore</h2>
         <p id="empty-ranking">Ainda não há pontuações.</p>
         <ol id="ranking"></ol>
-        <p class="muted">Placar salvo neste navegador.</p>
+        <p class="muted" id="ranking-source">Placar salvo neste navegador.</p>
       </aside>
     </div>
     <dialog id="result" aria-labelledby="result-title">
@@ -40,7 +43,8 @@
       <form id="record">
         <label for="player">Seu nome</label>
         <input id="player" maxlength="24" required autocomplete="off">
-        <button class="game-button" type="submit">Salvar pontuação</button>
+        <p id="publish-status" role="status"></p>
+        <button class="game-button" id="save-score" type="submit">Salvar pontuação</button>
         <button class="game-button secondary" id="skip" type="button">Voltar sem salvar</button>
       </form>
     </dialog>
