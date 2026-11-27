@@ -35,6 +35,7 @@ edgeFade.addColorStop(.77, '#000');
 edgeFade.addColorStop(1, 'transparent');
 const zoneStart = centerY - wagonHeight / 2;
 const openingDistance = 104;
+const openingLeadMs = 500;
 const nightBeam = ctx.createRadialGradient(280, 330, 105, 280, 330, 355);
 nightBeam.addColorStop(0, '#161c3910');
 nightBeam.addColorStop(.43, '#161c3930');
@@ -45,6 +46,7 @@ let wagons = [];
 let active = null;
 const entryY = -wagonHeight - 12;
 let nightAmount = 0;
+let sceneProgress = 1;
 let ranking = [];
 let online = null;
 
@@ -97,10 +99,53 @@ function drawStairTower(x, top, flights) {
   }
 }
 
+function drawGround() {
+  for (const [x, y, w, h] of [[6, 145, 118, 234], [440, 215, 114, 336], [62, 468, 57, 101]]) {
+    rect('#d7ceb8', x, y, w, h);
+    rect('#e4dcc9', x + 3, y + 3, w - 6, h - 6);
+    for (let seam = y + 28; seam < y + h - 4; seam += 28) {
+      rect('#cfc6b0', x + 3, seam, w - 6, 1);
+    }
+  }
+  for (let i = 0; i < 140; i += 1) {
+    const x = 9 + (i * 101 % 119) + (i % 2 ? 421 : 0);
+    const y = (i * 67 % 652) + 4;
+    rect(i % 3 ? '#bfa98942' : '#8d847048', x, y, i % 4 + 2, i % 3 + 1);
+  }
+}
+
+function drawYardEquipment() {
+  // Cabine de serviço, caixas e dutos afastados das escotilhas.
+  drawShed(46, 56, 58, 56);
+  for (const [x, y] of [[76, 392], [92, 402], [450, 145], [472, 153]]) {
+    rect('#85745f', x, y, 14, 12);
+    rect('#c7af87', x + 2, y + 2, 10, 7);
+    rect('#f0d6a3', x + 3, y + 2, 8, 2);
+  }
+  rect('#777c75', 461, 63, 72, 7);
+  rect('#a1a399', 461, 63, 72, 3);
+  rect('#777c75', 528, 63, 6, 54);
+  rect('#a1a399', 528, 68, 2, 46);
+}
+
+const yardLights = [[110, 146], [112, 322], [72, 512], [450, 229], [458, 420], [520, 581]];
+
+function drawYardLights() {
+  ctx.globalAlpha = nightAmount;
+  for (const [x, y] of yardLights) {
+    rect('#fff7d436', x - 7, y - 7, 14, 14);
+    rect('#fff7d469', x - 4, y - 4, 8, 8);
+    rect('#fffef8', x - 2, y - 2, 4, 4);
+  }
+  ctx.globalAlpha = 1;
+}
+
 function drawBuildings() {
+  drawStairTower(22, 312, 9);
   drawShed(14, 160, 90, 190);
+  rect('#4b585d', 64, 338, 15, 12);
   drawShed(470, 232, 76, 304);
-  drawStairTower(22, 440, 5);
+  rect('#4b585d', 486, 232, 15, 10);
   drawStairTower(501, 388, 5);
   rect('#777973', 492, 540, 13, 65);
   rect('#c0bfb0', 495, 544, 6, 57);
@@ -108,7 +153,13 @@ function drawBuildings() {
 
 function drawTrack() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawGround();
+  drawYardEquipment();
   drawBuildings();
+  for (const [x, y] of yardLights) {
+    rect('#6d6b61', x - 1, y, 2, 8);
+    rect('#b8b3a1', x - 2, y - 2, 4, 4);
+  }
 
   for (let i = 0; i < 170; i += 1) {
     const x = 138 + (i * 61 % 71) * 4;
@@ -130,13 +181,67 @@ function drawTrack() {
   }
 }
 
-function drawWagon(wagon) {
+const workerRoutes = [
+  { at: 5, vest: '#f3943c', helmet: '#ffda74', points: [[0,124,8],[.7,124,125],[1.05,76,125],[1.55,76,125],[1.72,76,111]] },
+  { at: 15, vest: '#e7aa38', helmet: '#f6f1ca', points: [[0,118,428],[.5,118,374],[.8,71,374],[1.35,71,374],[1.6,71,348]] },
+  { at: 30, vest: '#f08043', helmet: '#ffe17d', points: [[0,442,508],[.9,442,365],[1.45,442,365],[2.3,442,508]] },
+  { at: 35, vest: '#ce9b37', helmet: '#f9edce', points: [[0,552,188],[.5,493,188],[.78,493,212],[1.32,493,212],[1.58,493,233]] },
+  { at: 45, vest: '#df8350', helmet: '#ffdb68', points: [[0,12,646],[.72,12,506],[1.24,12,506],[2,12,646]] }
+];
+
+function drawWorkers(progress) {
+  for (const route of workerRoutes) {
+    const elapsed = ((progress - route.at) % 45 + 45) % 45;
+    const points = route.points;
+    if (progress < route.at || elapsed >= points.at(-1)[0]) continue;
+    const next = points.findIndex(point => point[0] > elapsed);
+    const [from, x, y] = points[next - 1];
+    const [to, endX, endY] = points[next];
+    const part = (elapsed - from) / (to - from);
+    const left = Math.round(x + (endX - x) * part);
+    const top = Math.round(y + (endY - y) * part);
+    const moving = x !== endX || y !== endY;
+    const step = moving && Math.floor(elapsed * 19) % 2 ? 2 : 0;
+    ctx.globalAlpha = Math.min(1, elapsed * 9, (points.at(-1)[0] - elapsed) * 12);
+    rect('#302d2a45', left - 6, top + 3, 14, 9);
+    rect('#263943', left - 4, top + 4 + step, 3, 6);
+    rect('#263943', left + 1, top + 6 - step, 3, 6);
+    rect('#4b4a44', left - 6, top - 3, 12, 10);
+    rect(route.vest, left - 5, top - 2, 10, 8);
+    rect('#fff4c2', left - 5, top + 3, 10, 2);
+    rect('#a77b5b', left - 3, top - 5, 6, 4);
+    rect('#524831', left - 5, top - 9, 10, 5);
+    rect(route.helmet, left - 4, top - 10, 8, 5);
+    rect('#fff3a0', left - 5, top - 6, 10, 2);
+    ctx.globalAlpha = 1;
+  }
+}
+
+const vliPalette = ['#a8afb1', '#e1e6e4', '#687a81'];
+const vliGlyphs = [
+  ['10001','10001','10001','10001','10001','01010','00100'],
+  ['10000','10000','10000','10000','10000','10000','11111'],
+  ['11111','00100','00100','00100','00100','00100','11111']
+];
+
+function drawVliMark(paint) {
+  vliGlyphs.forEach((letter, index) => {
+    letter.forEach((row, y) => {
+      [...row].forEach((pixel, x) => {
+        if (pixel === '1') paint('#075aa3', 210 + index * 48 + x * 8, 142 + y * 8, 8, 8);
+      });
+    });
+  });
+}
+
+function drawWagon(wagon, target = wagonCtx) {
   const position = wagon.y;
-  const opening = wagon.waiting ? 0 : smoothstep((position - zoneStart + openingDistance) / openingDistance);
+  const opening = smoothstep((position - zoneStart + openingDistance + (wagon.openingLead ?? 0)) / openingDistance);
+  const revealInterior = position >= zoneStart - (wagon.openingLead ?? 0) && !wagon.waiting;
   const top = Math.round(position / 4) * 4;
   const paint = (color, x, offset, width, height) => {
-    wagonCtx.fillStyle = color;
-    wagonCtx.fillRect(x, top + offset, width, height);
+    target.fillStyle = color;
+    target.fillRect(x, top + offset, width, height);
   };
   const [body, highlight, shade] = wagon.color;
   const outline = '#282937';
@@ -165,6 +270,7 @@ function drawWagon(wagon) {
     paint('#909995', 202, offset + 16, 144, 60);
     paint('#aab3aa', 202, offset + 16, 4, 60);
     paint('#6c7977', 206, offset + 48, 140, 4);
+    if (!revealInterior) paint('#39434b', 198, offset + 8, 152, 72);
     paint(outline, 354, offset + 8, 20, 72);
     paint(shade, 358, offset + 12, 12, 64);
     paint(highlight, 358, offset + 12, 4, 64);
@@ -184,24 +290,25 @@ function drawWagon(wagon) {
   paint('#f1de9b', 178, 16, 8, 4);
   paint('#f1de9b', 374, 308, 8, 4);
 
-  for (const piece of position >= zoneStart ? wagon.residue : []) {
+  for (const piece of revealInterior ? wagon.residue : []) {
     const { colors, pixels } = piece.pattern;
     pixels.forEach(([x, offset, width, height], i) => {
       const dx = piece.mirrored ? -x - width : x;
       paint(colors[Number(i >= pixels.length - 3)], piece.x + dx, piece.y + offset, width, height);
     });
   }
+  if (wagon.vli && revealInterior) drawVliMark(paint);
   // O aro das escotilhas bloqueia parte da luz, mesmo sob a lanterna.
   if (nightAmount > 0) {
-    wagonCtx.save();
+    target.save();
     for (const offset of hatchOffsets) {
-      wagonCtx.globalAlpha = .58 * nightAmount;
+      target.globalAlpha = .58 * nightAmount;
       paint('#141a2b', 198, offset + 8, 152, 72);
-      wagonCtx.globalAlpha = .20 * nightAmount;
+      target.globalAlpha = .20 * nightAmount;
       paint('#121526', 198, offset + 8, 152, 12);
       paint('#121526', 330, offset + 20, 20, 60);
     }
-    wagonCtx.restore();
+    target.restore();
   }
 
   for (const offset of hatchOffsets) {
@@ -259,11 +366,13 @@ function draw() {
   wagonCtx.globalCompositeOperation = 'source-over';
   ctx.drawImage(wagonLayer, 0, 0);
   drawPlatform();
+  drawWorkers(sceneProgress);
   if (nightAmount > 0) {
     ctx.globalAlpha = nightAmount;
     ctx.fillStyle = nightBeam;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     ctx.globalAlpha = 1;
+    drawYardLights();
   }
 }
 
@@ -276,12 +385,10 @@ function intervalFor(number) {
 }
 
 function updateTurn(progress) {
+  sceneProgress = progress;
   nightAmount = smoothstep((progress - 15) / 5) * (1 - smoothstep((progress - 35) / 5));
   document.body.style.setProperty('--night', (nightAmount * 100).toFixed(1) + '%');
   document.body.toggleAttribute('data-dark', nightAmount >= .56);
-  const label = nightAmount === 0 ? 'Dia' : nightAmount === 1 ? 'Noite'
-    : progress < 21 ? 'Anoitecendo' : 'Amanhecendo';
-  if (get('shift').textContent !== label) get('shift').textContent = label;
 }
 
 function setStatus(message) {
@@ -302,7 +409,7 @@ function finish(reason) {
   player.setCustomValidity('');
   get('publish-status').textContent = '';
   result.showModal();
-  player.focus();
+  get('result-title').focus();
 }
 
 async function refreshRanking() {
@@ -343,21 +450,24 @@ function onlineFrame(session) {
   }
   const interval = intervalFor(session.number);
   const position = Math.max(entryY, zoneStart + (now - session.opens) * wagonSpacing / interval);
-  if (now >= session.opens - 175 && now >= session.retryAt && !session.requesting &&
-      !session.missed && !session.pending && !session.cars.has(session.number)) {
-    const number = session.number;
-    session.requesting = true;
+  const nextOpens = session.opens + interval;
+  for (const [number, opens] of [[session.number, session.opens], [session.number + 1, nextOpens]]) {
+    if (now < opens - openingLeadMs - 175 || now < (session.retryAt.get(number) ?? 0) ||
+        session.missed || session.cars.has(number) || session.requesting.has(number)) continue;
+    session.requesting.add(number);
     rankingOnline.reveal(number).then(({ vagao, fecha }) => {
-      if (online !== session || session.missed) return;
+      if (online !== session || phase !== 'running' || session.missed) return;
       session.cars.set(number, {
-        color: palette[vagao.paletteIndex],
-        residue: vagao.residue.map(piece => ({ ...piece, pattern: residuePatterns[piece.patternIndex] }))
+        color: vagao.vli === true ? vliPalette : palette[vagao.paletteIndex],
+        vli: vagao.vli === true,
+        residue: vagao.residue.map(piece => ({ ...piece, pattern: residuePatterns[piece.patternIndex] })),
+        closes: fecha
       });
-      session.closes = fecha;
+      session.retryAt.delete(number);
     }).catch(error => {
       if (online !== session || phase !== 'running' || session.missed) return;
-      if (error.data?.erro === 'cedo') {
-        session.retryAt = now + 75;
+      if (error.data?.erro === 'cedo' || number !== session.number) {
+        session.retryAt.set(number, rankingOnline.now() + 150);
       } else if (error.data?.erro === 'janela_expirada') {
         session.missed = true;
         setActive(null);
@@ -365,10 +475,10 @@ function onlineFrame(session) {
       } else {
         onlineFailure('Partida encerrada. A conexão caiu antes de carregar o próximo vagão.');
       }
-    }).finally(() => { session.requesting = false; });
+    }).finally(() => { session.requesting.delete(number); });
   }
-  const closes = session.cars.has(session.number) ? session.closes
-    : session.opens + Math.floor(wagonHeight * interval / wagonSpacing);
+  const currentCar = session.cars.get(session.number);
+  const closes = currentCar?.closes ?? session.opens + Math.floor(wagonHeight * interval / wagonSpacing);
   if (now >= closes && !session.pending && session.accepted < session.number && !session.missed) {
     session.missed = true;
     setActive(null);
@@ -378,7 +488,6 @@ function onlineFrame(session) {
     !session.pending && session.accepted < session.number && session.cars.has(session.number);
   if (eligible && !active) {
     setActive({ number: session.number });
-    get('wagon-number').textContent = session.number;
     setStatus('Inspecione o interior');
   } else if (!eligible && active) {
     setActive(null);
@@ -390,6 +499,8 @@ function onlineFrame(session) {
       number, y: position + offset * wagonSpacing,
       color: car?.color ?? palette[1],
       residue: car?.residue ?? [],
+      vli: car?.vli ?? false,
+      openingLead: openingLeadMs * wagonSpacing / interval,
       waiting: !car && number >= session.number
     };
   }).filter(wagon => wagon.number > 0 && wagon.y >= entryY && wagon.y < canvas.height + 12);
@@ -403,7 +514,7 @@ function onlineFrame(session) {
 async function classifyOnline(approved) {
   const session = online;
   const number = active.number;
-  if (rankingOnline.now() >= session.closes) return;
+  if (rankingOnline.now() >= session.cars.get(number).closes) return;
   session.pending = true;
   setActive(null);
   try {
@@ -440,15 +551,14 @@ start.addEventListener('click', async () => {
     await rankingOnline.start();
     score = 0;
     get('score').textContent = score;
-    get('wagon-number').textContent = '—';
     wagons = [];
     setActive(null);
     updateTurn(1);
     draw();
     const session = {
-      number: 1, opens: rankingOnline.firstOpening(), closes: 0,
-      accepted: 0, retryAt: 0, cars: new Map(),
-      requesting: false, pending: false, missed: false
+      number: 1, opens: rankingOnline.firstOpening(),
+      accepted: 0, retryAt: new Map(), cars: new Map(),
+      requesting: new Set(), pending: false, missed: false
     };
     online = session;
     phase = 'running';
@@ -513,5 +623,40 @@ result.addEventListener('close', () => {
   start.focus();
 });
 
+function showTutorial() {
+  const key = 'tiresias-tutorial-v1';
+  try {
+    if (localStorage.getItem(key) === 'done') return;
+  } catch {
+    // O tutorial também funciona sem armazenamento.
+  }
+
+  const tutorial = get('game-tutorial');
+  const drawExample = (id, color, residue) => {
+    const target = get(id).getContext('2d');
+    target.translate(-150, -144);
+    drawWagon({ y: 160, color, residue }, target);
+  };
+  drawExample('tutorial-clean', palette[4], []);
+  drawExample('tutorial-dirty', palette[0], [
+    { pattern: residuePatterns[0], x: 244, y: 65, mirrored: false },
+    { pattern: residuePatterns[1], x: 306, y: 170, mirrored: true },
+    { pattern: residuePatterns[2], x: 264, y: 275, mirrored: false }
+  ]);
+
+  tutorial.addEventListener('cancel', event => event.preventDefault());
+  get('tutorial-start').addEventListener('click', () => {
+    try {
+      localStorage.setItem(key, 'done');
+    } catch {
+      // A tela pode ser fechada mesmo sem salvar a preferência.
+    }
+    tutorial.close();
+    start.focus();
+  });
+  tutorial.showModal();
+}
+
 draw();
+showTutorial();
 void refreshRanking();

@@ -1,6 +1,6 @@
 # Portfólio autoral — Cyro Borges
 
-Versão 1.27. Site estático responsivo (HTML, CSS e JavaScript), pronto para hospedagem pelo GitHub Pages.
+Versão 1.42. Site estático responsivo (HTML, CSS e JavaScript), pronto para hospedagem pelo GitHub Pages.
 
 ## Conteúdo
 - Início — apresentação autoral e mosaico fotográfico.
@@ -17,3 +17,6 @@ O arquivo `index.html` e as pastas `assets`, `tiresias`, `olhares`, `cadernos`, 
 Edite os arquivos na pasta local clonada pelo GitHub Desktop; faça Commit e Push origin para publicar as alterações. Não envie apenas o ZIP para a raiz do repositório.
 
 Fotografias originais não foram retocadas; as seis capturas do aplicativo são versões destinadas à apresentação pública com dados de demonstração. O conceito de hub amplo de rastreabilidade é uma possibilidade futura e não uma funcionalidade implementada.
+
+## Atualização do vagão VLI
+Antes de atualizar os arquivos do site, execute o arquivo complementar tiresias-03-vagao-vli.sql no SQL Editor do projeto Supabase. Ele atualiza a função já instalada, preservando as tabelas, os dados e a Edge Function. O sorteio do vagão VLI ocorre no servidor, com 0,1% de chance por vagão.

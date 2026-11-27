@@ -16,18 +16,19 @@
     <a class="backlink" href="../index.html">← Portfólio de Cyro Borges</a>
     <header class="game-intro">
       <h1>Inspeção de Vagões</h1>
-      <p>Aprove os vagões limpos e recuse os que tiverem resíduos enquanto as portas estiverem abertas. Cada acerto vale um ponto. Um erro ou um vagão sem resposta encerra a partida.</p>
     </header>
     <div class="game-layout">
       <section class="game-board" aria-label="Partida">
-        <div class="game-hud"><span>Pontos <strong id="score">0</strong></span><span>Vagão <strong id="wagon-number">—</strong></span><span>Turno <strong id="shift">Dia</strong></span></div>
-        <p id="status" role="status">Pronto para inspecionar</p>
-        <canvas id="track" width="560" height="660" aria-label="Via férrea vista de cima, com um vagão aberto na área de inspeção"></canvas>
-        <button id="start" class="game-button">Jogar</button>
-        <div class="game-controls">
-          <button id="approve" class="game-button approve" disabled>APROVAR <kbd>A</kbd></button>
-          <button id="reject" class="game-button reject" disabled>RECUSAR <kbd>R</kbd></button>
+        <div class="game-hud"><span>Pontos <strong id="score">0</strong></span></div>
+        <p id="status" role="status"></p>
+        <div class="game-scene">
+          <canvas id="track" width="560" height="660" aria-label="Via férrea vista de cima, com um vagão aberto na área de inspeção"></canvas>
+          <div class="game-controls">
+            <button id="approve" class="game-button approve" disabled>APROVAR <kbd>A</kbd></button>
+            <button id="reject" class="game-button reject" disabled>RECUSAR <kbd>R</kbd></button>
+          </div>
         </div>
+        <button id="start" class="game-button">Jogar</button>
       </section>
       <aside class="game-ranking">
         <h2>Highscore</h2>
@@ -37,16 +38,43 @@
         <button id="retry-ranking" class="game-button secondary" type="button" hidden>Recarregar placar</button>
       </aside>
     </div>
-    <dialog id="result" aria-labelledby="result-title">
-      <h2 id="result-title">Fim de partida</h2>
-      <p id="feedback"></p>
-      <form id="record">
-        <label for="player">Seu nome</label>
-        <input id="player" maxlength="24" required autocomplete="off">
-        <p id="publish-status" role="status"></p>
-        <button class="game-button" id="save-score" type="submit">Salvar pontuação</button>
-        <button class="game-button secondary" id="skip" type="button">Voltar sem salvar</button>
-      </form>
+    <dialog id="game-tutorial" aria-labelledby="tutorial-title">
+      <div class="tutorial-content">
+        <h2 id="tutorial-title">Parabéns, você foi contratado como Inspetor na TIRÉSIAS.</h2>
+        <div class="tutorial-examples">
+          <div class="tutorial-example">
+            <canvas id="tutorial-clean" width="260" height="368" role="img" aria-label="Vagão aberto, com interior limpo"></canvas>
+            <p>Vagões livres de impureza devem ser <strong class="tutorial-approved">APROVADOS</strong>.</p>
+          </div>
+          <div class="tutorial-example">
+            <canvas id="tutorial-dirty" width="260" height="368" role="img" aria-label="Vagão aberto, com resíduos no interior"></canvas>
+            <p>Vagões com impureza devem ser <strong class="tutorial-rejected">REPROVADOS</strong>.</p>
+          </div>
+        </div>
+        <button id="tutorial-start" class="game-button approve" type="button" autofocus>Começar</button>
+      </div>
+    </dialog>
+    <dialog id="result" aria-labelledby="result-title" aria-describedby="feedback">
+      <div class="result-content">
+        <header class="result-header">
+          <h2 id="result-title" tabindex="-1" autofocus>Fim da partida!</h2>
+          <p id="feedback"></p>
+        </header>
+        <form id="record">
+          <label for="player">Entre seu nome</label>
+          <input id="player" maxlength="24" required autocomplete="off">
+          <p id="publish-status" role="status"></p>
+          <div class="result-actions">
+            <button class="game-button" id="save-score" type="submit">Salvar</button>
+            <button class="game-button secondary" id="skip" type="button">Voltar sem salvar</button>
+          </div>
+        </form>
+        <a class="related result-project" href="../tiresias/index.html">
+          <small>Conhecer o projeto ↗</small>
+          <strong>Inspeção de Vagões (Projeto Tirésias)</strong>
+          <p>Conheça a experiência de criação que deu origem ao jogo.</p>
+        </a>
+      </div>
     </dialog>
   </main>
 </body>

@@ -83,3 +83,38 @@
     grid-template-columns: 1fr;
   }
 }
+
+.home-mosaic .card-jogo > img { image-rendering: pixelated; }
+.home-mosaic :is(.card-about, .card-cadernos, .card-jogo) .glass {
+  box-sizing: border-box;
+  width: 172px;
+  max-width: calc(100% - 2 * clamp(12px, 2vw, 28px));
+  height: 112px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.home-mosaic .card-jogo .glass strong {
+  font-size: 1rem;
+  line-height: 1.15;
+}
+@media (max-width: 540px) {
+  .home-mosaic :is(.card-about, .card-cadernos, .card-jogo) .glass {
+    max-width: calc(100% - 20px);
+    height: 88px;
+  }
+}
+@media (min-width: 851px) {
+  .home-mosaic .card-jogo { grid-column: 3; grid-row: 3; }
+}
+@media (max-width: 850px) {
+  .home-mosaic .card-jogo {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: calc((100% - 12px) / 2);
+    height: 220px;
+  }
+}
+@media (max-width: 540px) {
+  .home-mosaic .card-jogo { width: calc((100% - 10px) / 2); height: 180px; }
+}
