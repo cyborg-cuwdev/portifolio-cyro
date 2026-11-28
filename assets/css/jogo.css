@@ -211,7 +211,17 @@ kbd { font: inherit; margin-left: 4px; padding: 1px 4px; border: 1px solid curre
   --green: #147d70;
   --line: #d9e2dd;
 }
-.result-project p { margin-bottom: 0; }
+.result-links {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.result-links .result-project { padding: clamp(12px, 3vw, 23px); overflow-wrap: anywhere; }
+.result-links .result-project p { margin-bottom: 0; font-size: .9rem; line-height: 1.45; }
+.result-project:focus-visible { outline: 3px solid #9ce5ad; outline-offset: 3px; }
+@media (max-width: 320px) {
+  .result-links { grid-template-columns: 1fr; }
+}
 @media (prefers-reduced-motion: reduce) {
   #result-title { animation: none; }
 }
